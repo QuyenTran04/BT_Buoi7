@@ -5,6 +5,7 @@ let bcrypt = require('bcrypt')
 let jwt = require('jsonwebtoken')
 let fs = require('fs');
 const { CheckLogin } = require("../utils/authHandler");
+const { ChangePasswordValidator, validatedResult } = require("../utils/validateHandler");
 
 router.post('/register', async function (req, res, next) {
     try {
@@ -65,15 +66,9 @@ router.get('/me', CheckLogin, function (req, res, next) {
     res.send(req.user)
 })
 
-router.put('/change-password', CheckLogin, async function (req, res, next) {
+router.put('/change-password', CheckLogin, ChangePasswordValidator, validatedResult, async function (req, res, next) {
     try {
         let { oldPassword, newPassword } = req.body;
-
-        if (!oldPassword || !newPassword) {
-            return res.status(400).send({
-                message: "Vui lòng nhập đầy đủ mật khẩu cũ và mật khẩu mới"
-            });
-        }
 
         if (oldPassword === newPassword) {
             return res.status(400).send({

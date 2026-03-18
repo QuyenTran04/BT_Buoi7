@@ -47,5 +47,18 @@ module.exports = {
             min: 1
         }).withMessage("hinh anh co it nhat 1"),
         body('images.*').isURL().withMessage("URL hinh anh phai hop le")
+    ],
+    ChangePasswordValidator: [
+        body('oldPassword').notEmpty().withMessage("Mật khẩu cũ không được để trống"),
+        body('newPassword')
+            .notEmpty().withMessage("Mật khẩu mới không được để trống")
+            .bail()
+            .isStrongPassword({
+                minLength: 8,
+                minLowercase: 1,
+                minUppercase: 1,
+                minNumbers: 1,
+                minSymbols: 1
+            }).withMessage("Mật khẩu mới phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt")
     ]
 }

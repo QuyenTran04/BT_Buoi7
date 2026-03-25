@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 let slugify = require('slugify');
 let productModel = require('../schemas/products')
+let inventoryModel = require('../schemas/inventories')
 
 //R CUD
 /* GET users listing. */
@@ -44,22 +45,30 @@ router.get('/:id', async function (req, res, next) {
 });
 
 router.post('/', async function (req, res, next) {
-  let newProduct = new productModel({
-    title: req.body.title,
-    slug: slugify(req.body.title,
-      {
+  try {
+    let newProduct = new productModel({
+      title: req.body.title,
+      slug: slugify(req.body.title, {
         replacement: '-',
         remove: undefined,
         lower: true,
         trim: true
-      }
-    ), price: req.body.price,
-    images: req.body.images,
-    description: req.body.description,
-    category: req.body.category
-  })
-  await newProduct.save();
-  res.send(newProduct)
+      }),
+      price: req.body.price,
+      images: req.body.images,
+      description: req.body.description,
+      category: req.body.category
+    })
+    await newProduct.save();
+
+    // Auto-create inventory for the new product
+    let newInventory = new inventoryModel({ product: newProduct._id })
+    await newInventory.save();
+
+    res.status(201).send({ product: newProduct, inventory: newInventory })
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
 })
 router.put('/:id', async function (req, res, next) {
   try {

@@ -24,6 +24,7 @@ app.use('/api/v1/users', require('./routes/users'));
 app.use('/api/v1/roles', require('./routes/roles'));
 app.use('/api/v1/products', require('./routes/products'));
 app.use('/api/v1/categories', require('./routes/categories'));
+app.use('/api/v1/inventories', require('./routes/inventories'));
 app.use('/api/v1/auth', require('./routes/auth'));
 
 //connect

@@ -62,6 +62,40 @@ router.post('/add-stock/:idproduct', async function (req, res, next) {
   }
 });
 
+// POST /remove-stock — giảm stock theo product
+router.post('/remove-stock', async function (req, res, next) {
+  try {
+    let { product, quantity } = req.body;
+
+    if (!product) {
+      return res.status(400).send({ message: 'product is required' });
+    }
+    if (!quantity || quantity <= 0) {
+      return res.status(400).send({ message: 'quantity must be a positive number' });
+    }
+
+    // Kiểm tra stock hiện tại đủ để giảm không
+    let inventory = await inventoryModel.findOne({ product: product });
+    if (!inventory) {
+      return res.status(404).send({ message: 'Inventory not found for this product' });
+    }
+    if (inventory.stock < quantity) {
+      return res.status(400).send({
+        message: `Not enough stock. Available: ${inventory.stock}, requested: ${quantity}`
+      });
+    }
+
+    let result = await inventoryModel.findOneAndUpdate(
+      { product: product },
+      { $inc: { stock: -quantity } },
+      { new: true }
+    ).populate({ path: 'product', select: PRODUCT_FIELDS });
+
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
 
 module.exports = router;
 

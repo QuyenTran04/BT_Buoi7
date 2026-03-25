@@ -133,5 +133,41 @@ router.post('/reservation', async function (req, res, next) {
   }
 });
 
+// POST /sold — giảm reserved và tăng soldCount theo quantity
+router.post('/sold', async function (req, res, next) {
+  try {
+    let { product, quantity } = req.body;
+
+    if (!product) {
+      return res.status(400).send({ message: 'product is required' });
+    }
+    if (!quantity || quantity <= 0) {
+      return res.status(400).send({ message: 'quantity must be a positive number' });
+    }
+
+    // Kiểm tra reserved có đủ không
+    let inventory = await inventoryModel.findOne({ product: product });
+    if (!inventory) {
+      return res.status(404).send({ message: 'Inventory not found for this product' });
+    }
+    if (inventory.reserved < quantity) {
+      return res.status(400).send({
+        message: `Not enough reserved. Reserved: ${inventory.reserved}, requested: ${quantity}`
+      });
+    }
+
+    // Giảm reserved và tăng soldCount trong 1 lần update
+    let result = await inventoryModel.findOneAndUpdate(
+      { product: product },
+      { $inc: { reserved: -quantity, soldCount: quantity } },
+      { new: true }
+    ).populate({ path: 'product', select: PRODUCT_FIELDS });
+
+    res.send(result);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
 module.exports = router;
 
